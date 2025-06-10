@@ -9,6 +9,9 @@ from alembic import context
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from app.core.config import settings
 from app.core.database import Base
+from app.products import models as product_models
+from app.auth import models as auth_models
+from app.cart import models as cart_models
 
 from app.auth.models import User
 
