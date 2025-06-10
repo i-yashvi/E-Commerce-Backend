@@ -1,4 +1,50 @@
-__pycache__
-fastapi-env
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+
+# Virtual Environment
+venv/
+env/
+fastapi-env/
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS generated files
 .DS_Store
+Thumbs.db
+
+# Alembic
+alembic/versions/
+
+# dotenv / secrets
 .env
+.env.*
+
+# Pytest / test cache
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Logs
+*.log
+
+# Migrations cache (if any)
+__pycache__/
+
+# Compiled files
+*.egg
+*.egg-info
+dist/
+build/
+
+# Postman files (optional, if not meant for tracking)
+*.postman_collection.json
