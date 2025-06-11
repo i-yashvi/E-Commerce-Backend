@@ -22,6 +22,8 @@ fastapi-env/
 Thumbs.db
 
 # Alembic
+alembic.ini
+alembic/env.py
 alembic/versions/
 
 # dotenv / secrets
