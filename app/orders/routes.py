@@ -25,16 +25,22 @@ def checkout(
 
     total = 0
     order = Order(user_id=current_user.id)
-
     db.add(order)
     db.flush()  # so we get order.id
 
-    for item in cart_items:
+    for item in cart_items:  # For every product in the cart
         product = db.query(Product).filter(Product.id == item.product_id).first()
         if not product:
-            continue  
-        line_total = product.price * item.quantity
-        total += line_total
+            raise HTTPException(status_code=404, detail=f"Product ID {item.product_id} not found")
+            
+        if product.stock < item.quantity:  # If enough stock not exist as mentioned in cart, then don't checkout that item
+            raise HTTPException(
+                status_code=400,
+                detail=f"Not enough stock for product '{product.name}'. Available: {product.stock}, Requested: {item.quantity}"
+            )
+        
+        # Deduct stock here AFTER validation, and checkout
+        product.stock -= item.quantity
 
         db.add(OrderItem(
             order_id=order.id,
@@ -43,15 +49,19 @@ def checkout(
             price_at_purchase=product.price
         ))
 
+        total += product.price * item.quantity
+
     order.total_amount = total
-    order.status = OrderStatus.paid  # Simulate payment success
+    order.status = OrderStatus.paid  # Simulate payment success (Dummy payment)
+    
     db.query(Cart).filter(Cart.user_id == current_user.id).delete()
+    
     db.commit()
     db.refresh(order)
     return order
 
 
-# Order history
+# Order history of the user
 @order_router.get("/", response_model=List[OrderSummary])
 def order_history(
     db: Session = Depends(get_db),
@@ -60,7 +70,7 @@ def order_history(
     return db.query(Order).filter(Order.user_id == current_user.id).order_by(Order.created_at.desc()).all()
 
 
-# Order details
+# Particular order details
 @order_router.get("/{order_id}", response_model=OrderOut)
 def order_detail(
     order_id: int,

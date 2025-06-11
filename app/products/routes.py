@@ -11,6 +11,7 @@ admin_router = APIRouter(prefix="/admin/products", tags=["Admin Products"])
 public_router = APIRouter(prefix="/products", tags=["Public Products"])
 
 
+# APIs can be accessed by Admins only
 # Create product
 @admin_router.post("/", response_model=ProductOut)
 def create_product(
@@ -24,6 +25,7 @@ def create_product(
     db.refresh(new_product)
     return new_product
 
+
 # Get all products (paginated)
 @admin_router.get("/", response_model=List[ProductOut])
 def get_all_products(
@@ -34,6 +36,7 @@ def get_all_products(
 ):
     return db.query(Product).offset(skip).limit(limit).all()
 
+
 # Get product by ID
 @admin_router.get("/{product_id}", response_model=ProductOut)
 def get_product(product_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role("admin"))):
@@ -42,7 +45,8 @@ def get_product(product_id: int, db: Session = Depends(get_db), current_user: Us
         raise HTTPException(status_code=404, detail="Product not found")
     return product
 
-# Update product
+
+# Update product details
 @admin_router.put("/{product_id}", response_model=ProductOut)
 def update_product(
     product_id: int,
@@ -61,6 +65,7 @@ def update_product(
     db.refresh(product)
     return product
 
+
 # Delete product
 @admin_router.delete("/{product_id}")
 def delete_product(product_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role("admin"))):
@@ -73,6 +78,7 @@ def delete_product(product_id: int, db: Session = Depends(get_db), current_user:
     return {"message": "Product deleted successfully"}
 
 
+# APIs can be accessed by Anyone
 # Get All Products (with pagination, sort, filter)
 @public_router.get("/", response_model=List[ProductOut])
 def public_get_products(
@@ -95,6 +101,7 @@ def public_get_products(
     products = query.offset(skip).limit(limit).all()
     return products
 
+
 # Search Products by Name or Category
 @public_router.get("/search", response_model=List[ProductOut])
 def search_products(
@@ -106,6 +113,7 @@ def search_products(
         (Product.category.ilike(f"%{keyword}%"))
     )
     return query.all()
+
 
 # Get Product by ID
 @public_router.get("/{product_id}", response_model=ProductOut)

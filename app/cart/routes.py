@@ -21,12 +21,23 @@ def add_to_cart(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
+    if product.stock == 0:  # Can't add product to cart, if don't have enough stock
+        raise HTTPException(
+            status_code=400,
+            detail=f"Product is out of stock."
+        )
+    elif item.quantity > product.stock:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot add {item.quantity} units to cart. Only {product.stock} left in stock."
+        )
+
     cart_item = db.query(Cart).filter_by(
         user_id=current_user.id,
         product_id=item.product_id
     ).first()
 
-    if cart_item:
+    if cart_item:  # If item already exist in cart, just increase the quantity
         cart_item.quantity += item.quantity
     else:
         cart_item = Cart(
@@ -49,7 +60,12 @@ def view_cart(db: Session = Depends(get_db), current_user: User = Depends(requir
 
 # Update quantity of item in cart
 @router.put("/{product_id}", response_model=CartItemOut)
-def update_quantity(product_id: int, update: CartItemUpdate, db: Session = Depends(get_db), current_user: User = Depends(require_role("user"))):
+def update_quantity(
+    product_id: int, 
+    update: CartItemUpdate, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(require_role("user"))
+    ):
     cart_item = db.query(Cart).filter_by(
         user_id=current_user.id,
         product_id=product_id
@@ -58,6 +74,9 @@ def update_quantity(product_id: int, update: CartItemUpdate, db: Session = Depen
     if not cart_item:
         raise HTTPException(status_code=404, detail="Item not found")
 
+    if update.quantity == 0:  # If the updated quantity is 0, remove the item from cart
+        db.delete(cart_item)
+    
     cart_item.quantity = update.quantity
     db.commit()
     db.refresh(cart_item)

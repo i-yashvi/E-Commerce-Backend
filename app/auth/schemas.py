@@ -1,5 +1,14 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, StringConstraints
+from typing import Annotated
 from enum import Enum
+
+StrongPasswordStr = Annotated[
+    str,
+    StringConstraints(  # pydantic v2 (pydantic-core) doesn't support lookarounds
+        min_length=8,
+        pattern=r"^[A-Za-z\d@$!%*#?&]{8,}$"  # not necessarily, digit + uppercase + special char all at once
+    )
+]
 
 class Role(str, Enum):
     admin = "admin"
@@ -8,12 +17,12 @@ class Role(str, Enum):
 class UserCreate(BaseModel):
     name: str
     email: EmailStr
-    password: str
+    password: StrongPasswordStr
     role: Role = Role.user
 
 class UserLogin(BaseModel):
     email: EmailStr
-    password: str
+    password: StrongPasswordStr
 
 class UserOut(BaseModel):
     id: int
@@ -34,4 +43,4 @@ class ForgotPasswordRequest(BaseModel):
 
 class ResetPasswordRequest(BaseModel):
     token: str
-    new_password: str
+    new_password: StrongPasswordStr
