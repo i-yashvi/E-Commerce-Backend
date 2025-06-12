@@ -82,7 +82,7 @@ def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db
     # Simulate sending email
     print(f"[DEV] Reset Token for {user.email}: {reset_token.token}")
 
-    return {"message": "Password reset link sent to your email."}
+    return {"message": "Password reset link sent to your email.", "token": reset_token.token}
 
 
 # When clicked on new password generation link sent on email, token and new password sent to reset_password API

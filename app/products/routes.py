@@ -68,7 +68,11 @@ def update_product(
 
 # Delete product
 @admin_router.delete("/{product_id}")
-def delete_product(product_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_role("admin"))):
+def delete_product(
+    product_id: int, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(require_role("admin"))
+):
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
