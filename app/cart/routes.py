@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.auth.utils import get_current_user, require_role
@@ -74,13 +75,15 @@ def update_quantity(
     if not cart_item:
         raise HTTPException(status_code=404, detail="Item not found")
 
-    if update.quantity == 0:  # If the updated quantity is 0, remove the item from cart
+    if update.quantity == 0:
         db.delete(cart_item)
-    
-    cart_item.quantity = update.quantity
-    db.commit()
-    db.refresh(cart_item)
-    return cart_item
+        db.commit()
+        return JSONResponse(content={"detail": "Item removed from cart"}, status_code=status.HTTP_200_OK)
+    else:
+        cart_item.quantity = update.quantity
+        db.commit()
+        db.refresh(cart_item)
+        return cart_item
 
 
 # Remove item from cart

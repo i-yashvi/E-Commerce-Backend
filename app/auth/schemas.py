@@ -1,12 +1,12 @@
-from pydantic import BaseModel, EmailStr, StringConstraints
+from pydantic import BaseModel, EmailStr, constr
 from typing import Annotated
 from enum import Enum
 
 StrongPasswordStr = Annotated[
     str,
-    StringConstraints(  # pydantic v2 (pydantic-core) doesn't support lookarounds
+    constr(
         min_length=8,
-        pattern=r"^[A-Za-z\d@$!%*#?&]{8,}$"  # not necessarily, digit + uppercase + special char all at once
+        pattern=r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])"
     )
 ]
 

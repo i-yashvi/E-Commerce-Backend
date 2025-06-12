@@ -50,3 +50,4 @@ build/
 
 # Postman files (optional, if not meant for tracking)
 *.postman_collection.json
+.env
