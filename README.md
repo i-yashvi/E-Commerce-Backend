@@ -1,35 +1,5 @@
 # E-commerce Backend API using FastAPI
 
-A secure, scalable, and modular RESTful API for managing products, users, carts, and orders using **FastAPI**, **PostgreSQL**, and **SQLAlchemy**.
-
----
-
-## Features
-
-- User authentication (JWT-based)
-- Admin product management (CRUD)
-- Public product listing and search
-- Cart operations (add, update, remove)
-- Dummy checkout and order tracking
-- Role-based access control
-- Swagger/OpenAPI docs
-- PostgreSQL support
-
----
-
-## Tech Stack
-
-- Python 3.12+
-- FastAPI
-- PostgreSQL
-- SQLAlchemy + Alembic
-- Pydantic v2 + pydantic-settings
-- Uvicorn
-- Passlib (for password hashing)
-- JWT (python-jose)
-
----
-
 ## Folder Structure
 
 ```
@@ -44,46 +14,30 @@ project-root/
 │   └── ...
 ├── alembic/           # Migrations
 ├── .env
-├── requirements.txt
 └── README.md
 ```
 
----
-
 ## Setup Instructions
 
-### 1. Clone the repository
+### 1. Initialize local repository
 
 ```bash
-git clone <your-repo-url>
-cd <project-folder>
+git init
 ```
 
 ### 2. Create and activate a virtual environment
 
 ```bash
-# Windows
 python -m venv fastapi-env
-fastapi-env\Scripts\activate
-
-# macOS/Linux
-python3 -m venv fastapi-env
 source fastapi-env/bin/activate
 ```
 
 ### 3. Install required packages
 
 ```bash
-pip install -r requirements.txt
-```
-
-If `requirements.txt` doesn't exist yet, run:
-
-```bash
 pip install fastapi uvicorn[standard] sqlalchemy psycopg2-binary alembic \
     python-jose[cryptography] passlib[bcrypt] python-multipart \
     pydantic-settings python-dotenv
-pip freeze > requirements.txt
 ```
 
 ### 4. Create a `.env` file in the root folder
@@ -100,7 +54,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 ```bash
 alembic init alembic
-# Edit alembic.ini and alembic/env.py as per your database.py
+# Edit alembic.ini and alembic/env.py as per needs
 alembic revision --autogenerate -m "Initial migration"
 alembic upgrade head
 ```
@@ -120,26 +74,27 @@ Visit:
 
 ## API Endpoints Overview
 
-| Method | Endpoint              | Description                    |
-|--------|-----------------------|--------------------------------|
-| POST   | /auth/signup          | User registration              |
-| POST   | /auth/signin          | User login                     |
-| GET    | /products             | Public product listing         |
-| POST   | /admin/products       | Admin: create product          |
-| POST   | /cart                 | Add product to cart            |
-| POST   | /checkout             | Simulate checkout              |
-| GET    | /orders               | View user order history        |
-
-(See full details in Swagger UI)
-
----
-
-## Security Features
-
-- JWT authentication (access + refresh)
-- Password hashing using bcrypt
-- Role-based access (admin/user)
-- Secure token-based password reset (optional)
+| Method | Endpoint                           | Description                           |
+|--------|------------------------------------|---------------------------------------|
+| POST   | /auth/signup                       | User registration                     |
+| POST   | /auth/signin                       | User login                            |
+| POST   | /auth/forgot-password              | Forgot login password                 |
+| POST   | /auth/reset-password               | Reset login password                  |
+| GET    | /products                          | Public product listing                |
+| GET    | /products/{product_id}             | Public product details                |
+| GET    | /products/search                   | Public product search by keyword      |
+| POST   | /admin/products                    | Admin: create product                 |
+| GET    | /admin/products                    | Admin: get all products               |
+| GET    | /admin/products/{product_id}       | Admin: get product details            |
+| PUT    | /admin/products/{product_id}       | Admin: update product                 |
+| DELETE | /admin/products/{product_id}       | Admin: delete product                 |
+| POST   | /cart                              | User: Add product to cart             |
+| GET    | /cart/{product_id}                 | User: get all products                |
+| PUT    | /cart/{product_id}                 | User: update product quantity         |
+| DELETE | /cart/{product_id}                 | User: delete product                  |
+| POST   | /checkout                          | User: Simulate checkout               |
+| GET    | /orders                            | User: View user order history         |
+| GET    | /orders/{order_id}                 | User: View user order details         |
 
 ---
 
@@ -152,29 +107,6 @@ http://127.0.0.1:8000/docs
 
 ---
 
-## Code Quality & Linting
-
-Install dev tools:
-
-```bash
-pip install black flake8 isort
-```
-
-Run:
-
-```bash
-black .
-flake8 .
-```
-
----
-
 ## Author
 
 > Project developed as part of training by `Yashvi Mudgal`
-
----
-
-## License
-
-This project is for educational and demonstration purposes.
