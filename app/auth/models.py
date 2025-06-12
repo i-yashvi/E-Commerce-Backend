@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, Enum, ForeignKey, DateTime, Bool
 from app.core.database import Base
 import enum
 from sqlalchemy.orm import relationship
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import uuid
 
 
@@ -27,7 +27,7 @@ class PasswordResetToken(Base):
   id = Column(Integer, primary_key=True, index=True)
   user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
   token = Column(String, unique=True, index=True, default=lambda: str(uuid.uuid4()))
-  expiration_time = Column(DateTime, default=lambda: datetime.utcnow() + timedelta(minutes=30))
+  expiration_time = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc) + timedelta(minutes=30))
   used = Column(Boolean, default=False)
 
   user = relationship("User")
