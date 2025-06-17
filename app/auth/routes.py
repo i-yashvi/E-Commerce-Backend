@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Form, HTTPException, Security, Depends, status
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
+from jose import jwt, JWTError
 from datetime import datetime, timezone
-from app.auth.schemas import UserCreate, UserLogin, TokenResponse, Role, ForgotPasswordRequest, ResetPasswordRequest
+from app.core.config import settings
+from app.auth.schemas import ResetPasswordRequest, UserCreate, UserLogin, TokenResponse, ForgotPasswordRequest, RefreshTokenRequest
 from app.auth.models import User, PasswordResetToken
-from app.auth.utils import hash_password, verify_password, create_access_token, create_refresh_token, require_role, get_current_user
+from app.auth.utils import hash_password, verify_password, create_access_token, create_refresh_token, require_role
 from app.core.database import get_db
 from app.core.email import send_email
 from app.core.logger import logger  
@@ -91,50 +92,49 @@ def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db
     return {"message": "Password reset link sent to your email.", "token": reset_token.token}
 
 
-# When clicked on new password generation link sent on email, token and new password sent to reset_password API
-@router.get("/reset-password-form")
-def reset_password_form(token: str):
-    html_content = f"""
-    <html>
-        <body>
-            <h2>Reset Your Password</h2>
-            <form method="post" action="/auth/reset-password">
-                <input type="hidden" name="token" value="{token}">
-                <label>New Password:</label><br>
-                <input type="password" name="new_password" required><br><br>
-                <button type="submit">Reset Password</button>
-            </form>
-        </body>
-    </html>
-    """
-    return HTMLResponse(content=html_content)
-
-
-# New password created, DB updated
+# Create new password, Update DB
 @router.post("/reset-password")
-def reset_password(
-    token: str = Form(...), 
-    new_password: str = Form(...),
-    db: Session = Depends(get_db)
-):
-    logger.info(f"Reset password attempt using token: {token}")
-    token_record = db.query(PasswordResetToken).filter(PasswordResetToken.token == token).first()
+def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db)):
+    logger.info(f"Reset password attempt using token: {request.token}")
+    token_record = db.query(PasswordResetToken).filter(PasswordResetToken.token == request.token).first()
 
     if not token_record:
-        logger.warning(f"Reset failed - Invalid token: {token}")
-        return HTMLResponse(content="<h3>Invalid token.</h3>", status_code=404)
+        logger.warning(f"Reset failed - Invalid token: {request.token}")
+        raise HTTPException(status_code=404, detail="Invalid token")
     elif token_record.used or token_record.expiration_time.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
-        logger.warning(f"Reset failed - Token expired or already used: {token}")
-        return HTMLResponse(content="<h3>Token expired or already used.</h3>", status_code=400)
+        logger.warning(f"Reset failed - Token expired or already used: {request.token}")
+        raise HTTPException(status_code=400, detail="Token expired or already used")
 
     user = db.query(User).filter(User.id == token_record.user_id).first()
-    user.hashed_password = hash_password(new_password)
+    user.hashed_password = hash_password(request.new_password)
     token_record.used = True
     db.commit()
     
     logger.info(f"Password successfully reset for user ID: {token_record.user_id}")
-    return HTMLResponse(content="<h3>Password has been reset successfully.</h3>", status_code=200)
+    return {"message": "Password has been reset successfully."}
 
+
+# Refresh token regenerates access token after it expires
+@router.post("/refresh", response_model=TokenResponse)
+def refresh_token_endpoint(request: RefreshTokenRequest):
+    try:
+        payload = jwt.decode(request.refresh_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        email = payload.get("sub")
+        role = payload.get("role")
+
+        if not email:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+
+    new_access_token = create_access_token({"sub": email, "role": role})
+
+    return TokenResponse(
+        access_token=new_access_token,
+        refresh_token=request.refresh_token,
+        token_type="bearer"
+    )
 
 # -----------------------------------------------------------------------------------
 

@@ -1,3 +1,4 @@
+from fastapi import Path
 from pydantic import BaseModel, EmailStr, constr
 from typing import Annotated
 from enum import Enum
@@ -25,12 +26,12 @@ class UserLogin(BaseModel):
     password: StrongPasswordStr
 
 class UserOut(BaseModel):
-    id: int
+    id: int = Path(..., ge = 1)
     name: str
     email: EmailStr
     role: Role
 
-    class Config:
+    class Config:  # To map sqlalchemy model to pydantic model
         from_attributes = True
 
 class TokenResponse(BaseModel):
@@ -44,3 +45,6 @@ class ForgotPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     token: str
     new_password: StrongPasswordStr
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
