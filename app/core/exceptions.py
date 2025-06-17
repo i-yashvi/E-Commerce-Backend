@@ -1,12 +1,11 @@
 from fastapi.responses import JSONResponse
 from fastapi import Request
-from starlette.middleware.base import BaseHTTPMiddleware
-import logging
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from app.core.logger import logger  
 
-logger = logging.getLogger(__name__)
 
-async def custom_http_exception_handler(request: Request, exc):
-    logger.error(f"HTTP error: {exc.detail}")
+async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
+    logger.error(f"HTTP error: {exc.detail} - Path: {request.url.path}")
     return JSONResponse(
         status_code=exc.status_code,
         content={
@@ -17,7 +16,7 @@ async def custom_http_exception_handler(request: Request, exc):
     )
 
 async def unhandled_exception_handler(request: Request, exc: Exception):
-    logger.exception("Unhandled exception")
+    logger.exception(f"Unhandled exception at {request.url.path}: {repr(exc)}")
     return JSONResponse(
         status_code=500,
         content={

@@ -116,7 +116,7 @@ def reset_password(request: ResetPasswordRequest, db: Session = Depends(get_db))
 
 # Refresh token regenerates access token after it expires
 @router.post("/refresh", response_model=TokenResponse)
-def refresh_token_endpoint(request: RefreshTokenRequest):
+def refresh_token(request: RefreshTokenRequest):
     try:
         payload = jwt.decode(request.refresh_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         email = payload.get("sub")
@@ -135,14 +135,3 @@ def refresh_token_endpoint(request: RefreshTokenRequest):
         refresh_token=request.refresh_token,
         token_type="bearer"
     )
-
-# -----------------------------------------------------------------------------------
-
-@router.post("/admin-only")
-def protected_admin_route(
-    current_user: User = Depends(require_role("admin"))):  # Depends - Dependency Injection
-    return {"message": f"Hello {current_user.name}, you are an admin!"}
-
-@router.post("/user-only")
-def protected_user_route(current_user: User = Depends(require_role("user"))):
-    return {"message": f"Hello {current_user.name}, you are a user!"}

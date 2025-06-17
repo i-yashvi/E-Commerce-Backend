@@ -1,11 +1,6 @@
 from contextlib import asynccontextmanager
-import logging
 from fastapi import FastAPI
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-from fastapi.exception_handlers import http_exception_handler
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel, SecurityScheme as SecuritySchemeModel
 from fastapi.openapi.utils import get_openapi
 from .core.database import Base, engine
 from .core.exceptions import custom_http_exception_handler, unhandled_exception_handler

@@ -1,15 +1,7 @@
 from fastapi import Path
-from pydantic import BaseModel, EmailStr, constr
-from typing import Annotated
+from pydantic import BaseModel, EmailStr
 from enum import Enum
 
-StrongPasswordStr = Annotated[
-    str,
-    constr(
-        min_length=8,
-        pattern=r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])"
-    )
-]
 
 class Role(str, Enum):
     admin = "admin"
@@ -18,12 +10,12 @@ class Role(str, Enum):
 class UserCreate(BaseModel):
     name: str
     email: EmailStr
-    password: StrongPasswordStr
+    password: str
     role: Role = Role.user
-
+    
 class UserLogin(BaseModel):
     email: EmailStr
-    password: StrongPasswordStr
+    password: str
 
 class UserOut(BaseModel):
     id: int = Path(..., ge = 1)
@@ -44,7 +36,7 @@ class ForgotPasswordRequest(BaseModel):
 
 class ResetPasswordRequest(BaseModel):
     token: str
-    new_password: StrongPasswordStr
+    new_password: str
 
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
